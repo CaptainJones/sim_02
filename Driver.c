@@ -19,19 +19,22 @@
 #include "FileOps.h"
 #include "Util.h"
 
-
 int main( int arg, const char *args[])
 {
-  FILE *config, *mdf;
-
+    
   char buffer[10];
+  printf("Time: 0.000000, System start \n");
+  //timer used from Michaels example, slightly modified to work
+  accessTimer( ZERO_TIMER, buffer );
 
-  double configTime = 0, processTime = 0;
+  FILE *config, *mdf;
 
   //creates new config struct to pass in and store data
   struct configInfo *configData = malloc(sizeof(struct configInfo));
 
   struct process *processHead = malloc(sizeof(struct process));
+
+  //struct queueNode *queueHead = malloc(sizeof(struct queueNode));
 
   int configReturn, mdfReturn;
 
@@ -42,11 +45,10 @@ int main( int arg, const char *args[])
 
     return 0;
   }
-
-  //timer used from Michaels example, slightly modified to work
-  accessTimer( ZERO_TIMER, buffer );
-
-
+  
+  double curTime = accessTimer( LAP_TIMER, buffer );
+  printf("Time: %f, OS: Begin PCB Creation \n", curTime);
+  
   //open args[1] since args[0] is the executable name
   //r for read
   config = fopen(args[1], "r");
@@ -97,12 +99,6 @@ int main( int arg, const char *args[])
 
   }
 
-  configTime = accessTimer( LAP_TIMER, buffer );
-  accessTimer( ZERO_TIMER, buffer );
-
-
-  //accessTimer( LAP_TIMER, buffer );
-
   mdf = fopen(configData->filePath, "r");
 
   mdfReturn = metaDataRead( mdf, processHead );
@@ -114,13 +110,30 @@ int main( int arg, const char *args[])
       return 0;
   }
 
-  processTime = accessTimer( LAP_TIMER, buffer );
-
-  logFunc( configData, processHead, configTime, processTime );
-
+  curTime = accessTimer( LAP_TIMER, buffer );
+  printf("Time: %f, OS: All processes initialized in New state \n", curTime);
+  
+  
+  curTime = accessTimer( LAP_TIMER, buffer );
+  printf("Time: %f, OS: All processes initialized in Ready state \n", curTime);
+  
+  curTime = accessTimer( LAP_TIMER, buffer );
+  printf("Time: %f, OS: ", curTime);
+  printf("%s Strategy selects Process 0 with time: ", configData -> cpuScheduleCode);
+  printf("%f \n", curTime);
+  
+  struct process *curPro = processHead;
+  
+  while(curPro != NULL)
+  {
+    //printf("test \n");
+    curPro = curPro -> nextProcess;
+  }
+  
+  
   free( configData );
 
   deleteProcessList( processHead );
-
+  
   return 0;
 }

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include "Util.h"
 #include "data.h"
+#include "simtimer.h"
 
 const char CFGDELIMITER = ':';
 
@@ -371,6 +372,8 @@ void strConcat( char *str, char *concatStr )
   }
 }
 
+// ============================ Log Methods ============================
+
 void logFunc( struct configInfo *config, struct process *processList,
               double configTime, double processTime)
 {
@@ -501,3 +504,168 @@ void deleteProcessList( struct process *processList )
     current = temp->nextProcess;
   }
 }
+
+// ============================ Queue control Methods ============================
+
+struct queueNode *pushNode(struct queueNode *headNode, struct queueNode *newNode)
+{
+  if( headNode != NULL)
+  {
+      struct queueNode *curNode = headNode;
+      
+      while(curNode -> nextNode != NULL)
+      {
+         curNode = curNode -> nextNode;
+      }
+      
+      curNode -> nextNode = newNode;
+      
+      return newNode;
+  }
+  
+  headNode = newNode;
+  return headNode;
+}
+
+struct queueNode *popNode(struct queueNode *headNode)
+{
+  struct queueNode *tempPtr = headNode;
+  struct queueNode *headClone = headNode;
+  headNode = headNode -> nextNode;
+  
+  free(tempPtr);
+  
+  return headClone;
+}
+
+void clearQueue(struct queueNode *curNode)
+{
+  clearQueue(curNode -> nextNode);
+  free(curNode);
+}
+
+struct queueNode *createQueueNode(char *newMessage, int newTime, struct process *newProcess)
+{
+       struct queueNode *newNode = malloc(sizeof(struct queueNode));
+       newNode -> message = newMessage;
+       newNode -> timeOfComp = newTime;
+       newNode -> proPtr = newProcess;
+       return newNode;
+}
+
+// ============================ Runner Methods ============================
+
+void *IORunner(void *arg)
+{
+     struct queueNode *curNode = (struct queueNode *)arg;
+     struct process *proPtr = curNode -> proPtr;
+     int cycleTime = proPtr -> cycleTime;
+     
+     runTimer(cycleTime);
+     
+     char *timeLabel = "time";
+     double curTime = accessTimer(LAP_TIMER, timeLabel);
+     
+     curNode -> timeOfComp = curTime;
+     struct queueNode *queueHead = NULL;
+     
+     pushNode(queueHead, curNode);
+     
+     return 0;
+     
+}
+
+void RunRunner(struct queueNode *curNode)
+{
+     struct process *proPtr = curNode -> proPtr;
+     int cycleTime = proPtr -> cycleTime;
+     
+     runTimer(cycleTime);
+     
+     char *timeLabel = "time";
+     double curTime = accessTimer(LAP_TIMER, timeLabel);
+     
+     curNode -> timeOfComp = curTime;
+     struct queueNode *queueHead = NULL;
+     
+     pushNode(queueHead, curNode);
+     
+}
+
+
+// ============================ PCB Task methods ============================
+
+void OSTask(struct process *curProcess, struct queueNode *queueHead)
+{
+  char *message = "os task";
+  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
+  
+  RunRunner(newNode);
+}
+
+void AppTask(struct process *curProcess, struct queueNode *queueHead)
+{
+  char *message = "app task";
+  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
+  
+  RunRunner(newNode);
+}
+
+void ProTask(struct process *curProcess, struct queueNode *queueHead)
+{
+  char *message = "process task";
+  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
+  
+  RunRunner(newNode);
+}
+
+void MemTask(struct process *curProcess, struct queueNode *queueHead)
+{
+  char *message = "mem task";
+  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
+  
+  RunRunner(newNode);
+}
+
+void InTask(struct process *curProcess, struct queueNode *queueHead)
+{
+  char *message = "in task";
+  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
+  
+  IORunner(newNode);
+}
+
+void OutTask(struct process *curProcess, struct queueNode *queueHead)
+{
+  char *message = "out task";
+  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
+  
+  IORunner(newNode);
+}
+
+// ============================ Interup methods ============================
+
+int checkForInterupts()
+{
+    return 1;
+}
+
+// ============================ reeeee methods ============================
+
+void outPut(struct queueNode *curNode)
+{
+     while(curNode != NULL)
+     {
+       double time = curNode -> timeOfComp;
+       printf("Time: ");
+       printf("%f", time);
+       printf(", Process 999, ");
+       printf(curNode -> message); 
+       
+       curNode = curNode -> nextNode;
+     }
+}
+
+
+
+

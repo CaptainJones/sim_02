@@ -40,4 +40,13 @@ struct process
   struct process *nextProcess;
 };
 
+struct queueNode
+{
+  char* message;
+  int timeOfComp;
+  struct process *proPtr;
+  
+  struct queueNode *nextNode;
+};
+
 #endif
