@@ -124,12 +124,34 @@ int main( int arg, const char *args[])
   
   struct process *curPro = processHead;
   
+  struct queueNode *queueHead = NULL;
+         
   while(curPro != NULL)
   {
-    //printf("test \n");
+    switch(curPro -> compLetter)
+    {
+      case 'S':
+           OSTask(curPro, queueHead);
+           break;
+      case 'A':
+           AppTask(curPro, queueHead);
+           break;
+      case 'P':
+           ProTask(curPro, queueHead);
+           break;
+      case 'M':
+           MemTask(curPro, queueHead);
+           break;
+      case 'I':
+           InTask(curPro, queueHead);
+      case 'O':
+           OutTask(curPro, queueHead);
+           break;
+    }
+    
+    outPut(queueHead);
     curPro = curPro -> nextProcess;
   }
-  
   
   free( configData );
 

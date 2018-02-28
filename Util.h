@@ -64,4 +64,28 @@ void logLine( char * str, FILE *logFile, struct configInfo *config );
 
 void deleteProcessList( struct process *processList );
 
+struct queueNode *pushNode(struct queueNode *headNode, struct queueNode *newNode);
+
+struct queueNode *popNode(struct queueNode *headNode);
+
+void clearQueue(struct queueNode *curNode);
+
+struct queueNode *createQueueNode(char *newMessage, int newTime, struct process *newProcess);
+
+void OSTask(struct process *curProcess, struct queueNode *queueHead);
+
+void AppTask(struct process *curProcess, struct queueNode *queueHead);
+
+void ProTask(struct process *curProcess, struct queueNode *queueHead);
+
+void MemTask(struct process *curProcess, struct queueNode *queueHead);
+
+void InTask(struct process *curProcess, struct queueNode *queueHead);
+
+void OutTask(struct process *curProcess, struct queueNode *queueHead);
+
+int checkForInterupts();
+
+void outPut(struct queueNode *curNode);
+
 #endif

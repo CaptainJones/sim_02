@@ -575,7 +575,7 @@ void *IORunner(void *arg)
      
 }
 
-void RunRunner(struct queueNode *curNode)
+void RunRunner(struct queueNode *curNode, struct queueNode *queueHead)
 {
      struct process *proPtr = curNode -> proPtr;
      int cycleTime = proPtr -> cycleTime;
@@ -586,10 +586,8 @@ void RunRunner(struct queueNode *curNode)
      double curTime = accessTimer(LAP_TIMER, timeLabel);
      
      curNode -> timeOfComp = curTime;
-     struct queueNode *queueHead = NULL;
      
      pushNode(queueHead, curNode);
-     
 }
 
 
@@ -600,7 +598,7 @@ void OSTask(struct process *curProcess, struct queueNode *queueHead)
   char *message = "os task";
   struct queueNode *newNode = createQueueNode(message, 0, curProcess);
   
-  RunRunner(newNode);
+  RunRunner(newNode, queueHead);
 }
 
 void AppTask(struct process *curProcess, struct queueNode *queueHead)
@@ -608,7 +606,7 @@ void AppTask(struct process *curProcess, struct queueNode *queueHead)
   char *message = "app task";
   struct queueNode *newNode = createQueueNode(message, 0, curProcess);
   
-  RunRunner(newNode);
+  RunRunner(newNode, queueHead);
 }
 
 void ProTask(struct process *curProcess, struct queueNode *queueHead)
@@ -616,7 +614,7 @@ void ProTask(struct process *curProcess, struct queueNode *queueHead)
   char *message = "process task";
   struct queueNode *newNode = createQueueNode(message, 0, curProcess);
   
-  RunRunner(newNode);
+  RunRunner(newNode, queueHead);
 }
 
 void MemTask(struct process *curProcess, struct queueNode *queueHead)
@@ -624,7 +622,7 @@ void MemTask(struct process *curProcess, struct queueNode *queueHead)
   char *message = "mem task";
   struct queueNode *newNode = createQueueNode(message, 0, curProcess);
   
-  RunRunner(newNode);
+  RunRunner(newNode, queueHead);
 }
 
 void InTask(struct process *curProcess, struct queueNode *queueHead)
@@ -660,9 +658,9 @@ void outPut(struct queueNode *curNode)
        printf("Time: ");
        printf("%f", time);
        printf(", Process 999, ");
-       printf(curNode -> message); 
+       printf("%s \n", curNode -> message); 
        
-       curNode = curNode -> nextNode;
+       curNode = popNode(curNode);
      }
 }
 
