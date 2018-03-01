@@ -72,20 +72,8 @@ void clearQueue(struct queueNode *curNode);
 
 struct queueNode *createQueueNode(char *newMessage, int newTime, struct process *newProcess);
 
-void OSTask(struct process *curProcess, struct queueNode *queueHead);
-
-void AppTask(struct process *curProcess, struct queueNode *queueHead);
-
-void ProTask(struct process *curProcess, struct queueNode *queueHead);
-
-void MemTask(struct process *curProcess, struct queueNode *queueHead);
-
-void InTask(struct process *curProcess, struct queueNode *queueHead);
-
-void OutTask(struct process *curProcess, struct queueNode *queueHead);
+void *IORunner(void *arg);
 
 int checkForInterupts();
-
-void outPut(struct queueNode *curNode);
 
 #endif

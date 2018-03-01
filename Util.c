@@ -17,10 +17,13 @@
 #include "Util.h"
 #include "data.h"
 #include "simtimer.h"
+#include "pthread.h"
 
 const char CFGDELIMITER = ':';
 
 const char MDFDELIMITER = ';';
+
+// ============================ file parse helper Methods ============================
 
 //extracts the setting from config file line, regardless of which line it is
 //returns the data via the output pointer
@@ -190,6 +193,8 @@ int checkMalformedConfigHelper( char *lineToCheck, FILE* config )
 
   return CORRECT;
 }
+
+// ============================ String and int Methods ============================
 
 //finds length of string, until \n
 int strlength( char input[] )
@@ -491,6 +496,8 @@ void logLine( char * str, FILE *logFile, struct configInfo *config )
 
 }
 
+// ============================ struct Process control Methods ============================
+
 void deleteProcessList( struct process *processList )
 {
   struct process *current = processList, *temp;
@@ -553,7 +560,7 @@ struct queueNode *createQueueNode(char *newMessage, int newTime, struct process 
        return newNode;
 }
 
-// ============================ Runner Methods ============================
+// ============================ Runner Method ============================
 
 void *IORunner(void *arg)
 {
@@ -561,107 +568,25 @@ void *IORunner(void *arg)
      struct process *proPtr = curNode -> proPtr;
      int cycleTime = proPtr -> cycleTime;
      
-     runTimer(cycleTime);
+     runTimer(cycleTime * curNode -> timeOfComp);
      
-     char *timeLabel = "time";
-     double curTime = accessTimer(LAP_TIMER, timeLabel);
-     
-     curNode -> timeOfComp = curTime;
-     struct queueNode *queueHead = NULL;
-     
-     pushNode(queueHead, curNode);
-     
-     return 0;
-     
-}
-
-void RunRunner(struct queueNode *curNode, struct queueNode *queueHead)
-{
-     struct process *proPtr = curNode -> proPtr;
-     int cycleTime = proPtr -> cycleTime;
-     
-     runTimer(cycleTime);
-     
-     char *timeLabel = "time";
-     double curTime = accessTimer(LAP_TIMER, timeLabel);
+     char buffer[10];
+     double curTime = accessTimer(LAP_TIMER, buffer);
      
      curNode -> timeOfComp = curTime;
      
-     pushNode(queueHead, curNode);
+     printf("Time: %f, I/O task \n", curTime);
+
+     
+     pthread_exit(NULL);
+     
 }
 
-
-// ============================ PCB Task methods ============================
-
-void OSTask(struct process *curProcess, struct queueNode *queueHead)
-{
-  char *message = "os task";
-  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
-  
-  RunRunner(newNode, queueHead);
-}
-
-void AppTask(struct process *curProcess, struct queueNode *queueHead)
-{
-  char *message = "app task";
-  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
-  
-  RunRunner(newNode, queueHead);
-}
-
-void ProTask(struct process *curProcess, struct queueNode *queueHead)
-{
-  char *message = "process task";
-  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
-  
-  RunRunner(newNode, queueHead);
-}
-
-void MemTask(struct process *curProcess, struct queueNode *queueHead)
-{
-  char *message = "mem task";
-  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
-  
-  RunRunner(newNode, queueHead);
-}
-
-void InTask(struct process *curProcess, struct queueNode *queueHead)
-{
-  char *message = "in task";
-  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
-  
-  IORunner(newNode);
-}
-
-void OutTask(struct process *curProcess, struct queueNode *queueHead)
-{
-  char *message = "out task";
-  struct queueNode *newNode = createQueueNode(message, 0, curProcess);
-  
-  IORunner(newNode);
-}
-
-// ============================ Interup methods ============================
+// ============================ Interup method ============================
 
 int checkForInterupts()
 {
     return 1;
-}
-
-// ============================ reeeee methods ============================
-
-void outPut(struct queueNode *curNode)
-{
-     while(curNode != NULL)
-     {
-       double time = curNode -> timeOfComp;
-       printf("Time: ");
-       printf("%f", time);
-       printf(", Process 999, ");
-       printf("%s \n", curNode -> message); 
-       
-       curNode = popNode(curNode);
-     }
 }
 
 

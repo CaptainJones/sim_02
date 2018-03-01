@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "simtimer.h"
 #include "data.h"
 #include "FileOps.h"
@@ -124,38 +125,75 @@ int main( int arg, const char *args[])
   
   struct process *curPro = processHead;
   
-  struct queueNode *queueHead = NULL;
+  int proCycle = configData -> procCycle;
          
   while(curPro != NULL)
   {
     switch(curPro -> compLetter)
     {
       case 'S':
-           OSTask(curPro, queueHead);
+           runTimer(curPro -> cycleTime * proCycle);
+           curTime = accessTimer( LAP_TIMER, buffer );
+           printf("Time: %f, OS: task completed \n", curTime);
+           //OSTask(curPro, queueHead);
            break;
+           
       case 'A':
-           AppTask(curPro, queueHead);
+           runTimer(curPro -> cycleTime * proCycle);
+           curTime = accessTimer( LAP_TIMER, buffer );
+           printf("Time: %f, Process 0: application \n", curTime);
+           //AppTask(curPro, queueHead);
            break;
+           
       case 'P':
-           ProTask(curPro, queueHead);
+           runTimer(curPro -> cycleTime * proCycle);
+           curTime = accessTimer( LAP_TIMER, buffer );
+           printf("Time: %f, Process 0: process \n", curTime);
+           //ProTask(curPro, queueHead);
            break;
+           
       case 'M':
-           MemTask(curPro, queueHead);
+           runTimer(20);
+           curTime = accessTimer( LAP_TIMER, buffer );
+           printf("Time: %f, Process 0: Memory \n", curTime);
+           //MemTask(curPro, queueHead);
            break;
+           
       case 'I':
-           InTask(curPro, queueHead);
+           printf(" ");
+           pthread_t threadI;
+           pthread_attr_t threadAttribI;
+           pthread_attr_init(&threadAttribI);
+           
+           struct queueNode *newNodeI = createQueueNode("IO: process", configData -> ioCycle, curPro);
+           
+           pthread_create(&threadI, &threadAttribI, IORunner, &newNodeI);
+           pthread_join(threadI, NULL);
+           
+           break;
+           
       case 'O':
-           OutTask(curPro, queueHead);
+           printf(" ");
+           pthread_t threadO;
+           pthread_attr_t threadAttribO;
+           pthread_attr_init(&threadAttribO);
+           
+           struct queueNode *newNodeO = createQueueNode("IO: process", configData -> ioCycle, curPro);
+           
+           pthread_create(&threadO, &threadAttribO, IORunner, &newNodeO);
+           pthread_join(threadI, NULL);
+           
            break;
     }
     
-    outPut(queueHead);
     curPro = curPro -> nextProcess;
   }
   
   free( configData );
 
   deleteProcessList( processHead );
+  
+  printf("test");
   
   return 0;
 }
